@@ -115,7 +115,6 @@ function provision_linux() {
 		sleep 5
         fi
     done
-    date
     printf "done\n"
 }
 
