@@ -31,7 +31,7 @@ elif [[ ${nodeType} == "gateway" ]]; then
         pathToTemplate=${ROOT_CHECKOUT_DIR}/gateway
 else 
 	echo "Invalid node type '${nodeType}', expecting 'master', 'worker/linux', or 'gateway'"
-	return 1
+	exit 1
 fi
 
 envsubst < ${pathToTemplate}/configure.sh-template > ${pathToTemplate}/configure.sh
