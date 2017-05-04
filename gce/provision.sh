@@ -148,7 +148,7 @@ function configureNode() {
     echo "Configuring node ${instance} as ${nodeType} node"
 
 	gcloud compute ssh ${instance} --command "sudo chown -R ${user}:${user} /home/${user}/.ssh/"
-	gcloud compute ssh ${instance} --command "sudo /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
+	gcloud compute ssh ${instance} --command "sudo /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType} >> /root/kubernetes-ovn-heterogeneous-cluster/configure-node.log"
 }
 
 function setupNode() {
@@ -174,7 +174,7 @@ cwd=$(pwd)
 combinedPKFile="${cwd}/combined.pub"
 configFile="sig-win.conf"
 
-if [[ -f ${combinedPKFile} ]]; then 
+if [[ -f ${combinedPKFile} ]]; then
 	rm ${combinedPKFile}
 fi
 

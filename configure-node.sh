@@ -15,11 +15,13 @@ set +a
 
 MASTER_IP=$1; export MASTER_IP
 LOCAL_IP=$2; export LOCAL_IP
-nodeType=$3
+nodeType=$3; export nodeType
 
 TOKEN="\$TOKEN"; export TOKEN
 
 HOSTNAME=`hostname`; export HOSTNAME
+
+echo "Configuring node on ${HOSTNAME}"
 
 pathToTemplate=
 
