@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ROOT_CHECKOUT_DIR="/root/kubernetes-ovn-heterogeneous-cluster/"; export ROOT_CHECKOUT_DIR
+
 config=${ROOT_CHECKOUT_DIR}/sig-win.conf
 
 if [[ ! -f  ${config} ]]; then 

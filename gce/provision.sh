@@ -55,7 +55,7 @@ function generateSSHKey() {
 	local connected="false"
 
 	while [ "${connected}" == "false" ]; do
-		if gcloud compute ssh ${hostname} --command="sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N '' && chown -R ${user}:${user} /home/${user}/.ssh/ "; then
+		if gcloud compute ssh ${hostname} --command="sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
 			connected="true"
 		else 
 			echo "Could not connect to ${hostname}...this may be expected if it was just provisioned."
@@ -99,11 +99,11 @@ function provision_linux() {
 
 
     echo "Waiting for instance start-provisioning script to complete."
-    echo "Connection errors during this step while the node reboots is normal"
+#    echo "Connection errors during this step while the node reboots is normal"
     local isReady="false"
 
     while [ "${isReady}" == "false" ]; do
-        if gcloud compute ssh -q --zone ${zone} ${instance} --command "stat /ready > /dev/null 2>&1" ; then
+        if gcloud compute ssh -q --zone ${zone} ${instance} --command "stat /ready > /dev/null 2>&1" > /dev/null 2>&1 ; then
             	isReady="true"
         else
 #        	echo "Could not connect to ${instance}...this may be expected if it was just provisioned."
@@ -112,6 +112,7 @@ function provision_linux() {
 		sleep 5
         fi
     done
+    printf "done\n"
 }
 
 
@@ -146,7 +147,8 @@ function configureNode() {
 
     echo "Configuring node ${instance} as ${nodeType} node"
 
-	gcloud compute ssh ${instance} --command "sudo -i && cd /root/kubernetes-ovn-heterogeneous-cluster && sudo ./configure-node.sh ${masterIp} ${localIp} ${nodeType}"
+	gcloud compute ssh ${instance} --command "sudo chown -R ${user}:${user} /home/${user}/.ssh/"
+	gcloud compute ssh ${instance} --command "sudo /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
 }
 
 function setupNode() {
@@ -189,6 +191,8 @@ echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
+rm ${instance}.pub
+
 configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
@@ -198,6 +202,8 @@ workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkI
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
+
+rm ${instance}.pub
 
 configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
@@ -209,8 +215,10 @@ echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
+rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${gatewayExternalIp} "gateway"
 
+rm combined.pub
 ###########
 
 #for i in "-sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
