@@ -1,7 +1,5 @@
 #!/bin/bash
 
-source provision.conf
-
 function usage() {
     echo "Usage: provision -p prefix -u user -z zone"
     echo
@@ -57,7 +55,7 @@ function generateSSHKey() {
 	local connected="false"
 
 	while [ "${connected}" == "false" ]; do
-		if gcloud compute ssh ${hostname} --command="ssh-keygen -t rsa -f ~/.ssh/gce_rsa -C ${user} -q -N ''"; then
+		if gcloud compute ssh ${hostname} --command="sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N '' && chown -R ${user}:${user} /home/${user}/.ssh/ "; then
 			connected="true"
 		else 
 			echo "Could not connect to ${hostname}...this may be expected if it was just provisioned."
@@ -76,7 +74,7 @@ function getPublicKey() {
 	
 	echo "Pulling the public key from ${hostname}"
 
-	gcloud compute copy-files ${hostname}:/home/${user}/gce_rsa.pub ${hostname}.pub
+	gcloud compute copy-files ${hostname}:/home/${user}/.ssh/gce_rsa.pub ${hostname}.pub
 }
 
 
@@ -101,15 +99,17 @@ function provision_linux() {
 
 
     echo "Waiting for instance start-provisioning script to complete."
+    echo "Connection errors during this step while the node reboots is normal"
     local isReady="false"
 
     while [ "${isReady}" == "false" ]; do
-        if gcloud compute ssh --zone ${zone} ${instance} --command "" ; then
-            isReady="true"
+        if gcloud compute ssh -q --zone ${zone} ${instance} --command "stat /ready > /dev/null 2>&1" ; then
+            	isReady="true"
         else
-        	echo "Could not connect to ${instance}...this may be expected if it was just provisioned."
-			echo "Sleeping 5s..."
-			sleep 5
+#        	echo "Could not connect to ${instance}...this may be expected if it was just provisioned."
+#		echo "Sleeping 5s..."
+        printf "."
+		sleep 5
         fi
     done
 }
@@ -146,7 +146,7 @@ function configureNode() {
 
     echo "Configuring node ${instance} as ${nodeType} node"
 
-	gcloud compute ssh ${instance} --command "sudo /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
+	gcloud compute ssh ${instance} --command "sudo -i && cd /root/kubernetes-ovn-heterogeneous-cluster && sudo ./configure-node.sh ${masterIp} ${localIp} ${nodeType}"
 }
 
 function setupNode() {
@@ -171,7 +171,10 @@ function setupNode() {
 cwd=$(pwd)
 combinedPKFile="${cwd}/combined.pub"
 configFile="sig-win.conf"
-rm ${combinedPKFile}
+
+if [[ -f ${combinedPKFile} ]]; then 
+	rm ${combinedPKFile}
+fi
 
 for i in "sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
 	instance="${prefix}-${i}"
