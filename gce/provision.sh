@@ -166,7 +166,7 @@ function setupNode() {
 	generateSSHKey "${instance}" "${user}"
 	getPublicKey "${instance}" "${user}"
 	modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
-	copyConfigFile $instance $configFile
+	copyConfigFile ${instance} ${configFile}
 	echo "*** Completed initial setup for ${instance}."
 }
 
@@ -185,7 +185,7 @@ done
 
 #Configure the master node
 instance="${prefix}-sig-windows-master"
-masterExternalIp=$(gcloud compute instances describe auto-deploy-sig-windows-gw | grep networkIP | sed 's/\s*networkIP:\s*//')
+masterExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
@@ -197,7 +197,7 @@ configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
 instance="${prefix}-sig-windows-worker-linux-1"
-workerExternalIp=$(gcloud compute instances describe auto-deploy-sig-windows-gw | grep networkIP | sed 's/\s*networkIP:\s*//')
+workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
@@ -209,7 +209,7 @@ configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
 #Configure the gateway node
 instance="${prefix}-sig-windows-gw"
-gatewayExternalIp=$(gcloud compute instances describe auto-deploy-sig-windows-gw | grep networkIP | sed 's/\s*networkIP:\s*//')
+gatewayExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file

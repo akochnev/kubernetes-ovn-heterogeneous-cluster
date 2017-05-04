@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "Executing configure-node on ${HOSTNAME}"
 
 mkdir -p /etc/kubernetes/tls
 
@@ -15,7 +16,7 @@ ovs-vsctl set Open_vSwitch . external_ids:ovn-remote="tcp:$MASTER_IP:6642" \
 ovs-vsctl get Open_vSwitch . external_ids
 
 
-cd ~/kubernetes-ovn-heterogeneous-cluster/worker/linux
+cd ${ROOT_CHECKOUT_DIR}/worker/linux
 
 rm -rf tmp
 mkdir tmp
@@ -76,7 +77,7 @@ apt install -y python-pip
 
 pip install --upgrade pip
 
-cd ~
+cd ${ROOT_CHECKOUT_DIR}/../
 git clone https://github.com/alinbalutoiu/ovn_alpha ovn-kubernetes
 cd ovn-kubernetes
 

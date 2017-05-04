@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echo "Executing configure-node on ${HOSTNAME}"
+
+rm -rf ${ROOT_CHECKOUT_DIR}/tmp
+mkdir ${ROOT_CHECKOUT_DIR}/tmp
+cp -R make-certs openssl.cnf kubedns-* manifests systemd ${ROOT_CHECKOUT_DIR}/tmp/
 
 #Create the OVS bridge interface:
 ovs-vsctl set Open_vSwitch . external_ids:ovn-remote="tcp:$MASTER_IP:6642" \
@@ -39,12 +44,12 @@ sed -i"*" "s|__K8S_DNS_VERSION__|$K8S_DNS_VERSION|g" tmp/kubedns-deployment.yaml
 sed -i"*" "s|__K8S_DNS_DOMAIN__|$K8S_DNS_DOMAIN|g" tmp/*.*
 
 
-cp -R tmp/systemd/*.service /etc/systemd/system/
+cp -R ${ROOT_CHECKOUT_DIR}/tmp/systemd/*.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable etcd3
 systemctl start etcd3
 
-cd tmp
+cd ${ROOT_CHECKOUT_DIR}/tmp
 chmod +x make-certs
 ./make-certs
 cd ..
@@ -86,7 +91,7 @@ apt install -y python-pip
 
 pip install --upgrade pip
 
-cd ~
+cd ${ROOT_CHECKOUT_DIR}/../
 git clone https://github.com/alinbalutoiu/ovn_alpha ovn-kubernetes
 cd ovn-kubernetes
 
@@ -100,7 +105,7 @@ ovn-k8s-overlay master-init \
 systemctl enable ovn-k8s-watcher
 systemctl start ovn-k8s-watcher
 
-cd ~/kubernetes-ovn-heterogeneous-cluster/master
+cd ${ROOT_CHECKOUT_DIR}/master
 kubectl create -f tmp/kubedns-deployment.yaml
 kubectl create -f tmp/kubedns-service.yaml
 
