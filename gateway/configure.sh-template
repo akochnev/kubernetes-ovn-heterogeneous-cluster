@@ -11,8 +11,8 @@ mkdir -p /etc/kubernetes/tls
 
 date
 echo "Fetching certs from ${MASTER_IP}"
-scp -q -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca.pem /etc/kubernetes/tls/ca.pem
-scp -q -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca-key.pem /etc/kubernetes/tls/ca-key.pem
+scp -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca.pem /etc/kubernetes/tls/ca.pem
+scp -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca-key.pem /etc/kubernetes/tls/ca-key.pem
 
 
 ovs-vsctl set Open_vSwitch . external_ids:ovn-remote="tcp:$MASTER_IP:6642" \
