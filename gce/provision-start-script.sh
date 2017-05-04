@@ -7,6 +7,10 @@ fi
 
 # Make sure cert group exists
 groupadd -r kube-cert
+mkdir -p /etc/kubernetes/tls
+chown root:kube-cert /etc/kubernetes/tls
+chmod 775 /etc/kubernetes/tls
+
 
 #OVS/OVN Installation
 curl -fsSL https://yum.dockerproject.org/gpg | apt-key add -
