@@ -50,12 +50,13 @@ function generateSSHKey() {
 	local hostname=$1
 	local user=$2
 
+    date
 	echo "Generating SSH Key for user ${user} on instance ${hostname}"
 
 	local connected="false"
 
 	while [ "${connected}" == "false" ]; do
-		if gcloud compute ssh ${hostname} --command="sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
+		if gcloud compute ssh ${hostname} --command="sudo useradd -m ${user} && mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
 			connected="true"
 		else 
 			echo "Could not connect to ${hostname}...this may be expected if it was just provisioned."
@@ -71,7 +72,8 @@ function getPublicKey() {
 
 	local hostname=$1
 	local user=$2
-	
+
+	date
 	echo "Pulling the public key from ${hostname}"
 
 	gcloud compute copy-files ${hostname}:/home/${user}/.ssh/gce_rsa.pub ${hostname}.pub
@@ -84,6 +86,7 @@ function provision_linux() {
 	local zone=$2
 	local startupScript=$3
 
+    date
 	echo "Provisioning instance ${instance} in zone ${zone} with startup script ${startupScript}"
 
 	gcloud compute instances create "${instance}" \
@@ -112,6 +115,7 @@ function provision_linux() {
 		sleep 5
         fi
     done
+    date
     printf "done\n"
 }
 
@@ -122,6 +126,7 @@ function modifyPublicKey() {
 	local user=$2
 	local combinedPKFile=$3
 
+    date
 	echo "Fixing format of the ${hostname} public key to match GCE expectations, and adding to ${combinedPKFile}"
 
 	sed -i -e "s/^/${user}:/" ./${hostname}.pub
@@ -133,6 +138,7 @@ function copyConfigFile() {
 	local instance=$1
 	local configFile=$2
 
+    date
 	echo "Copying config file '${configFile}' to instance ${instance}"
 
 	gcloud compute copy-files ${configFile} ${instance}:/tmp
@@ -145,10 +151,12 @@ function configureNode() {
 	local localIp=$3
 	local nodeType=$4
 
+    date
     echo "Configuring node ${instance} as ${nodeType} node"
 
 	gcloud compute ssh ${instance} --command "sudo chown -R ${user}:${user} /home/${user}/.ssh/"
-	gcloud compute ssh ${instance} --command "sudo /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType} >> /root/kubernetes-ovn-heterogeneous-cluster/configure-node.log"
+	gcloud compute ssh ${instance} --command "sudo -H /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
+
 }
 
 function setupNode() {
@@ -159,6 +167,7 @@ function setupNode() {
 	local combinedPkFile=$4
 	local configFile=$5
 
+    date
 	echo "**Starting initial setup for ${instance}..."
 
 	provision_linux "${instance}" "${zone}" "./provision-start-script.sh"
@@ -187,6 +196,7 @@ done
 instance="${prefix}-sig-windows-master"
 masterExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
+date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
@@ -199,6 +209,7 @@ configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 instance="${prefix}-sig-windows-worker-linux-1"
 workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
+date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
@@ -211,6 +222,7 @@ configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 instance="${prefix}-sig-windows-gw"
 gatewayExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
+date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
 gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub

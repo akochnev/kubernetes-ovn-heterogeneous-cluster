@@ -4,8 +4,8 @@ echo "Executing configure-node on ${HOSTNAME}"
 
 mkdir -p /etc/kubernetes/tls
 
-scp -q -i /home/sig-win/.ssh/gce-rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca.pem /etc/kubernetes/tls/ca.pem
-scp -q -i /home/sig-win/.ssh/gce-rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca-key.pem /etc/kubernetes/tls/ca-key.pem
+scp -q -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca.pem /etc/kubernetes/tls/ca.pem
+scp -q -i /home/sig-win/.ssh/gce_rsa sig-win@${MASTER_IP}:/etc/kubernetes/tls/ca-key.pem /etc/kubernetes/tls/ca-key.pem
 
 
 ovs-vsctl set Open_vSwitch . external_ids:ovn-remote="tcp:$MASTER_IP:6642" \
@@ -58,7 +58,21 @@ kubectl config set-credentials default-admin --certificate-authority=/etc/kubern
 kubectl config set-context local --cluster=default-cluster --user=default-admin
 kubectl config use-context local
 
+echo "Sleeping for 30 seconds before polling for k8s api server"
+sleep 30
 
+apiIsUp="false"
+
+while [[ "${apiIsUp}" == "false" ]]; do
+
+	if kubectl get node ${HOSTNAME} ; then
+		apiIsUp="true"
+    else
+        echo "API server not avialable yet, waiting 10 seconds and retrying"
+        sleep 10
+	fi
+
+done
 
 export TOKEN=$(kubectl describe secret $(kubectl get secrets | grep default | cut -f1 -d ' ') | grep -E '^token' | cut -f2 -d':' | tr -d '\t')
 
