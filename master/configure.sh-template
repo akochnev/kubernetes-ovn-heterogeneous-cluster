@@ -73,13 +73,21 @@ kubectl config set-context local --cluster=default-cluster --user=default-admin
 kubectl config use-context local
 
 
+
+echo "Sleeping for 30 seconds before polling for k8s api server"
+sleep 30
+
 apiIsUp="false"
 
 while [[ "${apiIsUp}" == "false" ]]; do
 
-	if kubectl get nodes ; then
+	if kubectl get node ${HOSTNAME} ; then
 		apiIsUp="true"
+    else
+        echo "API server not avialable yet, waiting 10 seconds and retrying"
+        sleep 10
 	fi
+
 done
 
 
