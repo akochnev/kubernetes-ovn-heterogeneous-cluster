@@ -65,7 +65,7 @@ apiIsUp="false"
 
 while [[ "${apiIsUp}" == "false" ]]; do
 
-	if kubectl get node ${HOSTNAME} ; then
+    if kubectl get nodes | grep ${HOSTNAME} ; then
 		apiIsUp="true"
     else
         echo "API server not avialable yet, waiting 10 seconds and retrying"
