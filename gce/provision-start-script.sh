@@ -4,6 +4,10 @@ if [[ -f "/setup" ]]; then
     touch /ready
     exit 0
 fi
+
+# Make sure cert group exists
+groupadd -r kube-cert
+
 #OVS/OVN Installation
 curl -fsSL https://yum.dockerproject.org/gpg | apt-key add -
 echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" > sudo tee /etc/apt/sources.list.d/docker.list

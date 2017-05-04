@@ -56,7 +56,7 @@ function generateSSHKey() {
 	local connected="false"
 
 	while [ "${connected}" == "false" ]; do
-		if gcloud compute ssh ${hostname} --command="sudo useradd -m ${user} && mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
+		if gcloud compute ssh ${hostname} --command="sudo useradd -m -G kube-cert ${user} && sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
 			connected="true"
 		else 
 			echo "Could not connect to ${hostname}...this may be expected if it was just provisioned."
