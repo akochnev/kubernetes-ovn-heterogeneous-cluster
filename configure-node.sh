@@ -1,6 +1,6 @@
 #!/bin/bash
 
-config=./sig-win.conf
+config=${ROOT_CHECKOUT_DIR}/sig-win.conf
 
 if [[ ! -f  ${config} ]]; then 
 	echo "Required config file '${config}' is not present'"
