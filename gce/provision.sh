@@ -5,7 +5,7 @@ function usage() {
     echo
     echo "Options:"
     echo "-p | --prefix : A prefix to be prepended to GCE instance names"
-    echo "-u | --user : User to create ssh keys for"
+#    echo "-u | --user : User to create ssh keys for"
     echo "-z | --zone : GCE zone to provision instances in"
     echo "    --help             display help"
     exit 1
@@ -168,6 +168,7 @@ function setupNode() {
 
     date
 	echo "**Starting initial setup for ${instance}..."
+	printf "==========================================================\n\n"
 
 	provision_linux "${instance}" "${zone}" "./provision-start-script.sh"
 	sleep 10
@@ -176,6 +177,7 @@ function setupNode() {
 	modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
 	copyConfigFile ${instance} ${configFile}
 	echo "*** Completed initial setup for ${instance}."
+	printf "==========================================================\n\n"
 }
 
 cwd=$(pwd)
@@ -192,6 +194,8 @@ for i in "sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
 done
 
 #Configure the master node
+echo "**Configuring ${instance}..."
+printf "==========================================================\n\n"
 instance="${prefix}-sig-windows-master"
 masterExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
@@ -205,6 +209,8 @@ rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
+echo "**Configuring ${instance}..."
+printf "==========================================================\n\n"
 instance="${prefix}-sig-windows-worker-linux-1"
 workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
@@ -218,6 +224,8 @@ rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
 #Configure the gateway node
+echo "**Configuring ${instance}..."
+printf "==========================================================\n\n"
 instance="${prefix}-sig-windows-gw"
 gatewayExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
@@ -230,69 +238,3 @@ rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${gatewayExternalIp} "gateway"
 
 rm combined.pub
-###########
-
-#for i in "-sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
-#
-#done
-#
-#
-#instance="${prefix}-sig-windows-worker-linux-1"
-#
-#
-#echo "**Starting work for ${instance}"
-#provision_linux "${instance}" "${zone}" "./setup.sh"
-#sleep 10
-#generateSSHKey "${instance}" "${user}"
-#getPublicKey "${instance}" "${user}"
-#modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
-#masterExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP)
-#copyConfigFile $instance $configFile
-#configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
-#echo "**Completed work for ${instance}"
-#
-#instance="${prefix}-sig-windows-worker-linux-1"
-#
-#echo "**Starting work for ${instance}"
-#provision_linux "${instance}" "${zone}" "./setup.sh"
-#sleep 10
-#generateSSHKey "${instance}" "${user}"
-#getPublicKey "${instance}" "${user}"
-#modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
-#workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP)
-#copyConfigFile $instance $configFile
-#configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
-#
-#echo "**Completed work for ${instance}"
-#
-#instance="${prefix}-sig-windows-gw"
-#
-#echo "**Starting work for ${instance}"
-#provision_linux "${instance}" "${zone}" "./setup.sh"
-#sleep 10
-#generateSSHKey "${instance}" "${user}"
-#getPublicKey "${instance}" "${user}"
-#modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
-#gatewayExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP)
-#copyConfigFile $instance $configFile
-#configureNode ${instance} ${masterExternalIp} ${gatewayExternalIp} "gateway"
-#
-#echo "**Completed work for ${instance}"
-#
-#
-#instance="${prefix}-sig-windows-master"
-#echo "Adding public keys to authorized host of ${instance}"
-##Set the metadata element from combined file
-#gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
-#
-#instance="${prefix}-sig-windows-worker-linux-1"
-#echo "Adding public keys to authorized host of ${instance}"
-##Set the metadata element from combined file
-#gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
-#
-#instance="${prefix}-sig-windows-gw"
-#echo "Adding public keys to authorized host of ${instance}"
-##Set the metadata element from combined file
-#gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
-
-
