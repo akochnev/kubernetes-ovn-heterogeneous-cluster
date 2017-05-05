@@ -56,7 +56,7 @@ function generateSSHKey() {
 	local connected="false"
 
 	while [ "${connected}" == "false" ]; do
-		if gcloud compute ssh ${hostname} --command="sudo useradd -m -G kube-cert ${user} && sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
+		if gcloud compute ssh --zone ${zone} ${hostname} --command="sudo useradd -m -G kube-cert ${user} && sudo mkdir -p /home/${user}/.ssh && sudo ssh-keygen -t rsa -f /home/${user}/.ssh/gce_rsa -C ${user} -q -N ''"; then
 			connected="true"
 		else 
 			echo "Could not connect to ${hostname}...this may be expected if it was just provisioned."
@@ -76,7 +76,7 @@ function getPublicKey() {
 	date
 	echo "Pulling the public key from ${hostname}"
 
-	gcloud compute copy-files ${hostname}:/home/${user}/.ssh/gce_rsa.pub ${hostname}.pub
+	gcloud compute copy-files --zone ${zone} ${hostname}:/home/${user}/.ssh/gce_rsa.pub ${hostname}.pub
 }
 
 
@@ -140,8 +140,8 @@ function copyConfigFile() {
     date
 	echo "Copying config file '${configFile}' to instance ${instance}"
 
-	gcloud compute copy-files ${configFile} ${instance}:/tmp
-	gcloud compute ssh ${instance} --command "sudo mv /tmp/${configFile} /root/kubernetes-ovn-heterogeneous-cluster/${configFile}"
+	gcloud compute copy-files --zone ${zone} ${configFile} ${instance}:/tmp
+	gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/${configFile} /root/kubernetes-ovn-heterogeneous-cluster/${configFile}"
 }
 
 function configureNode() {
@@ -153,8 +153,8 @@ function configureNode() {
     date
     echo "Configuring node ${instance} as ${nodeType} node"
 
-	gcloud compute ssh ${instance} --command "sudo chown -R ${user}:${user} /home/${user}/.ssh/"
-	gcloud compute ssh ${instance} --command "sudo -H /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
+	gcloud compute ssh --zone ${zone} ${instance} --command "sudo chown -R ${user}:${user} /home/${user}/.ssh/"
+	gcloud compute ssh --zone ${zone} ${instance} --command "sudo -H /root/kubernetes-ovn-heterogeneous-cluster/configure-node.sh ${masterIp} ${localIp} ${nodeType}"
 
 }
 
@@ -194,45 +194,46 @@ for i in "sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
 done
 
 #Configure the master node
+instance="${prefix}-sig-windows-master"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
-instance="${prefix}-sig-windows-master"
-masterExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
+
+masterExternalIp=$(gcloud compute instances describe --zone ${zone} ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
-gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
+gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
 rm ${instance}.pub
 
 configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
+instance="${prefix}-sig-windows-worker-linux-1"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
-instance="${prefix}-sig-windows-worker-linux-1"
-workerExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
+workerExternalIp=$(gcloud compute instances describe --zone ${zone} ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
-gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
+gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
 rm ${instance}.pub
 
 configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
 #Configure the gateway node
+instance="${prefix}-sig-windows-gw"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
-instance="${prefix}-sig-windows-gw"
-gatewayExternalIp=$(gcloud compute instances describe ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
+gatewayExternalIp=$(gcloud compute instances describe --zone ${zone} ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
 
 date
 echo "Adding public keys to authorized host of ${instance}"
 #Set the metadata element from combined file
-gcloud compute instances add-metadata ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
+gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
 rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${gatewayExternalIp} "gateway"
