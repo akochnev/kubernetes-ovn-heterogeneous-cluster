@@ -97,6 +97,8 @@ sed -i"*" "s|__HOSTNAME__|$HOSTNAME|g" tmp/make-certs
 
 sed -i"*" "s|__NIC__|$NIC|g" tmp/systemd/ovn-k8s-gateway-helper.service
 
+sed -i"*" "s|__NIC__|$NIC|g" tmp/systemd/ovn-k8s-network-startup.service
+
 cd tmp
 chmod +x make-certs
 ./make-certs
