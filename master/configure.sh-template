@@ -111,7 +111,7 @@ pip install --upgrade --prefix=/usr/local --ignore-installed .
 
 ovn-k8s-overlay master-init \
   --cluster-ip-subnet="$K8S_POD_SUBNET" \
-  --master-switch-subnet="$K8S_NODE_POD_SUBNET" \
+  --master-switch-subnet="$K8S_MASTER_NODE_POD_SUBNET" \
   --node-name="$HOSTNAME"
 
 systemctl enable ovn-k8s-watcher
