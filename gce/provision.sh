@@ -188,13 +188,13 @@ if [[ -f ${combinedPKFile} ]]; then
 	rm ${combinedPKFile}
 fi
 
-for i in "sig-windows-master" "sig-windows-worker-linux-1" "sig-windows-gw"; do
+for i in "master" "worker-linux-1" "gw"; do
 	instance="${prefix}-${i}"
 	setupNode ${instance} ${user} ${zone} ${combinedPKFile} ${configFile}
 done
 
 #Configure the master node
-instance="${prefix}-sig-windows-master"
+instance="${prefix}-master"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
 
@@ -210,7 +210,7 @@ rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
-instance="${prefix}-sig-windows-worker-linux-1"
+instance="${prefix}-worker-linux-1"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
 workerExternalIp=$(gcloud compute instances describe --zone ${zone} ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
@@ -225,7 +225,7 @@ rm ${instance}.pub
 configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
 #Configure the gateway node
-instance="${prefix}-sig-windows-gw"
+instance="${prefix}-gw"
 echo "**Configuring ${instance}..."
 printf "==========================================================\n\n"
 gatewayExternalIp=$(gcloud compute instances describe --zone ${zone} ${instance} | grep networkIP | sed 's/\s*networkIP:\s*//')
