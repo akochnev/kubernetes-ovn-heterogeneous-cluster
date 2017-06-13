@@ -159,7 +159,7 @@ function modifyPublicKey() {
 function copyHyperkubeDockerImage() {
    local instance=$1
    local imageFile=$2
-   local baseName=$(baseName ${imageFile})
+   local baseName=$(basename ${imageFile})
 
    gcloud compute copy-files --zone ${zone} ${imageFile} ${instance}:/tmp
    gcloud compute ssh --zone ${zone} ${instance} --command "sudo docker load -i /tmp/${baseName}"
@@ -168,7 +168,7 @@ function copyHyperkubeDockerImage() {
 function copyKubeletBin() {
   local instance=$1
   local bin=$2
-  local baseName=$(baseName ${bin})
+  local baseName=$(basename ${bin})
 
   gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
   gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/local/bin/kubelet && sudo chmod +x /usr/local/bin/kubelet"
@@ -177,7 +177,7 @@ function copyKubeletBin() {
 function copyKubectlBin() {
   local instance=$1
   local bin=$2
-  local baseName=$(baseName ${bin})
+  local baseName=$(basename ${bin})
 
   gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
   gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/bin/kubectl && sudo chmod +x /usr/bin/kubectl"
