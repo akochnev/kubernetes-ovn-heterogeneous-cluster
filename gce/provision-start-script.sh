@@ -22,6 +22,7 @@ apt install -y docker.io dkms
 cd ~
 git clone https://github.com/bsteciuk/kubernetes-ovn-heterogeneous-cluster
 cd kubernetes-ovn-heterogeneous-cluster/deb
+git checkout 1.7-release
 
 dpkg -i openvswitch-common_2.6.2-1_amd64.deb \
 openvswitch-datapath-dkms_2.6.2-1_all.deb \

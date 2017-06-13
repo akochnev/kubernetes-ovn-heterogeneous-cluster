@@ -7,6 +7,9 @@ function usage() {
     echo "-p | --prefix : A prefix to be prepended to GCE instance names"
 #    echo "-u | --user : User to create ssh keys for"
     echo "-z | --zone : GCE zone to provision instances in"
+    echo "-i | --hyperkube-image : hyperkube docker image"
+    echo "-k | --kubelet : kubelet binary"
+    echo "-c | --kubectl : kubectl binary"
     echo "    --help             display help"
     exit 1
 }
@@ -15,12 +18,18 @@ function usage() {
 prefix=
 user=sig-win
 zone=
+image=
+kubelet=
+kubectl=
 
 while true; do
   case "$1" in
     -p | --prefix ) prefix="$2"; shift ;;
     -u | --user   ) user="$2"; shift ;;
     -z | --zone   ) zone="$2"; shift ;;
+    -i | --hyperkube-image ) image="$2"; shift ;;
+    -k | --kubelet ) kubelet="$2"; shift ;;
+    -c | --kubectl ) kubectl="$2"; shift ;;
     --help ) usage;;
     -- ) shift; break ;;
         -*) echo "ERROR: unrecognized option $1"; exit 1;;
@@ -31,6 +40,21 @@ done
 
 if [ -z "${prefix}" ]; then 
 	echo "prefix is required parameter"
+	usage
+fi
+
+if [ -z "${image}" ]; then
+	echo "image is required parameter"
+	usage
+fi
+
+if [ -z "${kubelet}" ]; then
+	echo "kubelet is required parameter"
+	usage
+fi
+
+if [ -z "${kubectl}" ]; then
+	echo "kubectl is required parameter"
 	usage
 fi
 
@@ -132,6 +156,34 @@ function modifyPublicKey() {
 	cat ./${hostname}.pub >> ${combinedPKFile}
 }
 
+function copyHyperkubeDockerImage() {
+   local instance=$1
+   local imageFile=$2
+   local baseName=$(baseName ${imageFile})
+
+   gcloud compute copy-files --zone ${zone} ${imageFile} ${instance}:/tmp
+   gcloud compute ssh --zone ${zone} ${instance} --command "sudo docker load -i /tmp/${baseName}"
+}
+
+function copyKubeletBin() {
+  local instance=$1
+  local bin=$2
+  local baseName=$(baseName ${bin})
+
+  gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
+  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/local/bin/kubelet && sudo chmod +x /usr/local/bin/kubelet"
+}
+
+function copyKubectlBin() {
+  local instance=$1
+  local bin=$2
+  local baseName=$(baseName ${bin})
+
+  gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
+  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/bin/kubectl && sudo chmod +x /usr/bin/kubectl"
+
+}
+
 
 function copyConfigFile() {
 	local instance=$1
@@ -176,6 +228,8 @@ function setupNode() {
 	getPublicKey "${instance}" "${user}"
 	modifyPublicKey "${instance}" "${user}" "${combinedPKFile}"
 	copyConfigFile ${instance} ${configFile}
+	copyKubectlBin ${instance} ${kubectl}
+
 	echo "*** Completed initial setup for ${instance}."
 	printf "==========================================================\n\n"
 }
@@ -207,6 +261,7 @@ gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from
 
 rm ${instance}.pub
 
+copyHyperkubeDockerImage ${instance} ${image}
 configureNode ${instance} ${masterExternalIp} ${masterExternalIp} "master"
 
 #Configure the linux worker node
@@ -222,6 +277,7 @@ gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from
 
 rm ${instance}.pub
 
+copyKubeletBin ${instance} ${kubelet}
 configureNode ${instance} ${masterExternalIp} ${workerExternalIp} "worker/linux"
 
 #Configure the gateway node
@@ -236,6 +292,8 @@ echo "Adding public keys to authorized host of ${instance}"
 gcloud compute instances add-metadata --zone ${zone} ${instance} --metadata-from-file ssh-keys=${cwd}/combined.pub
 
 rm ${instance}.pub
+
+copyKubeletBin ${instance} ${kubelet}
 configureNode ${instance} ${masterExternalIp} ${gatewayExternalIp} "gateway"
 
 rm combined.pub
