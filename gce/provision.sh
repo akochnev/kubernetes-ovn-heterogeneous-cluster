@@ -171,7 +171,7 @@ function copyKubeletBin() {
   local baseName=$(basename ${bin})
 
   gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
-  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/local/bin/kubelet && sudo chmod +x /usr/local/bin/kubelet"
+  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/${baseName} /usr/local/bin/kubelet && sudo chmod +x /usr/local/bin/kubelet"
 }
 
 function copyKubectlBin() {
@@ -180,7 +180,7 @@ function copyKubectlBin() {
   local baseName=$(basename ${bin})
 
   gcloud compute copy-files --zone ${zone} ${bin} ${instance}:/tmp
-  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/$baseName} /usr/bin/kubectl && sudo chmod +x /usr/bin/kubectl"
+  gcloud compute ssh --zone ${zone} ${instance} --command "sudo mv /tmp/${baseName} /usr/bin/kubectl && sudo chmod +x /usr/bin/kubectl"
 
 }
 
