@@ -39,9 +39,11 @@ sed -i"*" "s|__K8S_API_SERVICE_IP__|$K8S_API_SERVICE_IP|g" tmp/openssl.cnf
 
 sed -i"*" "s|__K8S_POD_SUBNET__|$K8S_POD_SUBNET|g" tmp/manifests/*.yaml
 sed -i"*" "s|__K8S_SERVICE_SUBNET__|$K8S_SERVICE_SUBNET|g" tmp/manifests/*.yaml
+sed -i"*" "s|__HYPERKUBE_IMAGE__|$K8S_SERVICE_SUBNET|g" tmp/manifests/*.yaml
 
 sed -i"*" "s|__K8S_DNS_SERVICE_IP__|$K8S_DNS_SERVICE_IP|g" tmp/systemd/kubelet.service
 sed -i"*" "s|__K8S_DNS_DOMAIN__|$K8S_DNS_DOMAIN|g" tmp/systemd/kubelet.service
+sed -i"*" "s|__HYPERKUBE_IMAGE__|$K8S_DNS_DOMAIN|g" tmp/systemd/kubelet.service
 
 sed -i"*" "s|__K8S_DNS_SERVICE_IP__|$K8S_DNS_SERVICE_IP|g" tmp/kubedns-service.yaml
 sed -i"*" "s|__K8S_DNS_VERSION__|$K8S_DNS_VERSION|g" tmp/kubedns-deployment.yaml
@@ -64,7 +66,6 @@ cp -R tmp/manifests /etc/kubernetes/
 systemctl enable kubelet
 systemctl start kubelet
 
-curl -Lskj -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v$K8S_VERSION/bin/linux/amd64/kubectl
 chmod +x /usr/bin/kubectl
 
 kubectl config set-cluster default-cluster --server=https://$MASTER_IP --certificate-authority=/etc/kubernetes/tls/ca.pem

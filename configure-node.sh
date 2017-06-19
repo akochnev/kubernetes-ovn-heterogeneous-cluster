@@ -17,9 +17,11 @@ MASTER_IP=$1; export MASTER_IP
 LOCAL_IP=$2; export LOCAL_IP
 nodeType=$3; export nodeType
 
+
 TOKEN="\$TOKEN"; export TOKEN
 NIC="\$NIC"; export NIC
 GW_IP="\$GW_IP"; export GW_IP
+apiIsUp="false"; export apiIsUp
 
 HOSTNAME=`hostname`; export HOSTNAME
 

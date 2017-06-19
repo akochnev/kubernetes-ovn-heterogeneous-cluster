@@ -118,6 +118,7 @@ function provision_linux() {
 	    --machine-type "custom-2-2048" \
 	    --can-ip-forward \
 	    --tags "https-server" \
+	    --tags "sig-windows-allow-30000" \
 	    --image-family "ubuntu-1604-lts" \
 	    --image-project "ubuntu-os-cloud" \
 	    --boot-disk-size "50" \
