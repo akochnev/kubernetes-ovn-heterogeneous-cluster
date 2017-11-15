@@ -25,7 +25,8 @@ apt update
 apt install -y docker.io dkms
 
 cd ~
-git clone https://github.com/apprenda/kubernetes-ovn-heterogeneous-cluster
+#git clone https://github.com/apprenda/kubernetes-ovn-heterogeneous-cluster
+git clone https://github.com/bsteciuk/kubernetes-ovn-heterogeneous-cluster.git
 cd kubernetes-ovn-heterogeneous-cluster/deb
 
 dpkg -i openvswitch-common_2.7.2-1_amd64.deb \

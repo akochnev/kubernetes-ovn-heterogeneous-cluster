@@ -32,9 +32,9 @@ if ( Test-Path c:\ovs\ready ) {
    mkdir ovs
    cd ovs
 
-   $K8S_MASTER_IP = Invoke-RestMethod -URI http://metadata.google.internal/computeMetadata/v1/instance/attributes/apiServer -Headers @{"Metadata-Flavor" = "Google"}
+   #$K8S_MASTER_IP = Invoke-RestMethod -URI http://metadata.google.internal/computeMetadata/v1/instance/attributes/apiServer -Headers @{"Metadata-Flavor" = "Google"}
    setx -m CONTAINER_NETWORK "external"
-   setx -m K8S_MASTER_IP "$K8S_MASTER_IP"
+   setx -m K8S_MASTER_IP "10.111.4.2"
 
    #pull ovn and ovn-k8s bits
    Start-BitsTransfer https://cloudbase.it/downloads/openvswitch-hyperv-2.7.0-certified.msi
