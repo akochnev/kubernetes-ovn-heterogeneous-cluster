@@ -1,4 +1,6 @@
 
+start-transcript -append -path "C:\install_ovn.log"
+
 $SUBNET="10.244.9.0/24" # The minion subnet used to spawn pods on
 $GATEWAY_IP="10.244.9.1" # first ip of the subnet
 $CLUSTER_IP_SUBNET="10.244.0.0/16" # The big subnet which includes the minions subnets
@@ -70,4 +72,4 @@ windows-init.exe windows-init --node-name $HOSTNAME --minion-switch-subnet $SUBN
 Write-Host "Starting ovn-k8s service"
 start-service ovn-k8s
 
-
+stop-transcript
